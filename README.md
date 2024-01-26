@@ -1,2 +1,2 @@
 # ami-go
-a discord echo reminder-bot
+a personal discord assistant  
