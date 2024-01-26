@@ -4,4 +4,4 @@ git pull origin main
 
 sudo rm -rf /opt/ami-go
 go build
-sudo mv ./amigo-go /opt/
+sudo mv ./ami-go /opt/
