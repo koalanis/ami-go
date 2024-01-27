@@ -1,20 +1,22 @@
+// bot package implements reusable functions for creating, and authorizing a discord session
 package bot
 
 import (
 	"fmt"
 	"os"
-	"strings"
-
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
 )
 
+// DiscordBot is a wrapper struct that will contain all metadata for a bot's running session
 type DiscordBot struct {
 	Session *discordgo.Session
 }
 
+// function responsible for creating a discord bot
 func DiscordBotInit(discordBotToken string) (*DiscordBot, error) {
 	DG, err := discordgo.New("Bot " + discordBotToken)
 	// Create a new Discord session using the provided bot token.
@@ -28,6 +30,7 @@ func DiscordBotInit(discordBotToken string) (*DiscordBot, error) {
 	return &bot, nil
 }
 
+// Given a discord bot, and a guild (aka a discord server), this function prints a list of channels
 func ListChannels(bot *DiscordBot, guild string) error {
 	err2 := bot.Session.Open()
 	if err2 != nil {
@@ -40,6 +43,7 @@ func ListChannels(bot *DiscordBot, guild string) error {
 	return nil
 }
 
+// Given a discord bot, a message and a channelId, this function has the Bot send a message to that channel if it exists
 func SendMessage(bot *DiscordBot, msg string, channel string) error {
 	err2 := bot.Session.Open()
 	if err2 != nil {
@@ -53,6 +57,7 @@ func SendMessage(bot *DiscordBot, msg string, channel string) error {
 	return nil
 }
 
+// Takes discord bot and creates a server session that listens to messages on the server
 func InteractiveMode(bot *DiscordBot, guild string) error {
 	err2 := bot.Session.Open()
 	if err2 != nil {
