@@ -1,4 +1,4 @@
-// The main package is the entry point of the ami-go program and handles the CLI logic (for now)
+// The main package is the entry point of the ami-go program
 package main
 
 import (
