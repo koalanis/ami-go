@@ -3,6 +3,7 @@ package cli
 import (
 	"flag"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/koalanis/ami-go/bot"
 )
 
@@ -26,10 +27,10 @@ func ParseArgs() (string, string, bool, string, string, string) {
 	return token, command, runBot, channel, message, guild
 }
 
-func HandleCommand(cmd string, msg string, discordBot *bot.DiscordBot, guildId string, channelId string) {
+func HandleCommand(cmd string, msg string, discordSession *discordgo.Session, guildId string, channelId string) {
 	if cmd == "list" {
-		bot.ListChannels(discordBot, guildId)
+		bot.ListChannels(discordSession, guildId)
 	} else if cmd == "msg" {
-		bot.SendMessage(discordBot, cmd, channelId)
+		bot.SendMessage(discordSession, cmd, channelId)
 	}
 }

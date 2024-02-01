@@ -30,13 +30,13 @@ func Run() {
 		os.Exit(0)
 		return
 	} else {
-		discordBot, err := bot.DiscordBotInit(discordBotToken)
+		discordSession, err := bot.DiscordSessionInit(discordBotToken)
 		if err != nil {
 			fmt.Println("error opening connection,", err)
 			return
 		}
 
-		cli.HandleCommand(cmd, msg, discordBot, guild, channel)
+		cli.HandleCommand(cmd, msg, discordSession, guild, channel)
 	}
 
 	os.Exit(0)

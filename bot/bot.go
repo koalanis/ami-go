@@ -22,16 +22,6 @@ type MessageContext struct {
 	channelId string
 }
 
-func DiscordSessionInit(discordBotToken string) (*discordgo.Session, error) {
-	session, err := discordgo.New("Bot " + discordBotToken)
-	// Create a new Discord session using the provided bot token.
-	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return nil, err
-	}
-	return session, nil
-}
-
 // function responsible for creating a discord bot
 func DiscordBotInit(discordBotToken string) (*DiscordBot, error) {
 	DG, err := DiscordSessionInit(discordBotToken)
@@ -44,33 +34,6 @@ func DiscordBotInit(discordBotToken string) (*DiscordBot, error) {
 	// Register the messageCreate func as a callback for MessageCreate events.
 	bot := DiscordBot{DG, 0, make([]string, 0)}
 	return &bot, nil
-}
-
-// Given a discord bot, and a guild (aka a discord server), this function prints a list of channels
-func ListChannels(bot *DiscordBot, guild string) error {
-	err2 := bot.Session.Open()
-	if err2 != nil {
-		fmt.Println("error opening Discord session,", err2)
-		return err2
-	}
-	listChannels(bot.Session, guild)
-	// Cleanly close down the Discord session.
-	bot.Session.Close()
-	return nil
-}
-
-// Given a discord bot, a message and a channelId, this function has the Bot send a message to that channel if it exists
-func SendMessage(bot *DiscordBot, msg string, channel string) error {
-	err2 := bot.Session.Open()
-	if err2 != nil {
-		fmt.Println("error opening Discord session,", err2)
-		return err2
-	}
-	bot.Session.ChannelMessageSend(channel, fmt.Sprintf("<@218854888824766475> %s", msg))
-
-	// Cleanly close down the Discord session.
-	bot.Session.Close()
-	return nil
 }
 
 func printMessageCreateDebugLog(m *discordgo.MessageCreate) {
@@ -100,7 +63,7 @@ func InteractiveMode(bot *DiscordBot, guild string) error {
 			return
 		}
 		fmt.Println(channel.Name)
-		fmt.Println("end message debug----\n\n\n")
+		fmt.Println("end message debug----")
 
 		if m.Author.ID == s.State.User.ID {
 			fmt.Println("early return")
@@ -130,28 +93,18 @@ func InteractiveMode(bot *DiscordBot, guild string) error {
 				s.ChannelMessageSend(m.ChannelID, msg)
 				bot.commandInvocationCount -= 1
 			} else if command == "todo" {
+				s.ChannelMessageSend(m.ChannelID, "here are the todos")
 			} else if command == "today" {
 				NOT_IMPLEMENTED_YET()
 			} else if command == "random" {
 				NOT_IMPLEMENTED_YET()
 			} else if command == "stats" {
 				NOT_IMPLEMENTED_YET()
-			} else if command == "listchannels" {
-				guildID := m.GuildID
-				channels, err := s.GuildChannels(guildID)
-				if err != nil {
-					fmt.Println("Error retrieving channels:", err)
-					return
-				}
-
-				fmt.Println("Channels in the guild:")
-				for _, channel := range channels {
-					fmt.Printf("ID: %s, Name: %s, Type: %s\n", channel.ID, channel.Name, channel.Type)
-				}
 			}
 		}
 	})
 	listChannels(bot.Session, guild)
+
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
