@@ -4,39 +4,24 @@
 package app
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/koalanis/ami-go/bot"
 	"github.com/koalanis/ami-go/cli"
+	"github.com/koalanis/ami-go/server"
 )
 
 func Run() {
-	discordBotToken, cmd, interactive, channel, msg, guild := cli.ParseArgs()
+	amigo := cli.ParseArgs()
 
-	if discordBotToken == "Bot Token" {
+	if !cli.ValidateExecutionContext(amigo) {
 		os.Exit(1)
 		return
 	}
 
-	if interactive {
-		discordBot, err := bot.DiscordBotInit(discordBotToken)
-		if err != nil {
-			fmt.Println("error opening connection,", err)
-			return
-		}
-		bot.InteractiveMode(discordBot, guild)
-		fmt.Println("Gracefully shutting down")
-		os.Exit(0)
-		return
+	if amigo.ServerMode {
+		server.ServerInit(amigo)
 	} else {
-		discordSession, err := bot.DiscordSessionInit(discordBotToken)
-		if err != nil {
-			fmt.Println("error opening connection,", err)
-			return
-		}
-
-		cli.HandleCommand(cmd, msg, discordSession, guild, channel)
+		cli.CliInit(amigo)
 	}
 
 	os.Exit(0)
