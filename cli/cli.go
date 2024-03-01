@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/koalanis/ami-go/bot"
+	"github.com/koalanis/ami-go/discordUtils"
 )
 
 type AmigoExecutionContext struct {
@@ -39,9 +39,9 @@ func ParseArgs() AmigoExecutionContext {
 
 func HandleCommand(cmd string, msg string, discordSession *discordgo.Session, guildId string, channelId string) {
 	if cmd == "list" {
-		bot.ListChannels(discordSession, guildId)
+		discordUtils.ListChannels(discordSession, guildId)
 	} else if cmd == "msg" {
-		bot.SendMessage(discordSession, cmd, channelId)
+		discordUtils.SendMessage(discordSession, cmd, channelId)
 	}
 }
 
@@ -50,7 +50,7 @@ func ValidateExecutionContext(amigo AmigoExecutionContext) bool {
 }
 
 func CliInit(amigo AmigoExecutionContext) {
-	discordSession, err := bot.DiscordSessionInit(amigo.Token)
+	discordSession, err := discordUtils.DiscordSessionInit(amigo.Token)
 	if err != nil {
 		fmt.Println("error opening connection,", err)
 		return

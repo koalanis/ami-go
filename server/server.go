@@ -5,14 +5,13 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/koalanis/ami-go/bot"
 	"github.com/koalanis/ami-go/cli"
 	"github.com/koalanis/ami-go/db"
+	"github.com/koalanis/ami-go/discordUtils"
 )
 
 func printMessageCreateDebugLog(m *discordgo.MessageCreate) {
@@ -21,19 +20,19 @@ func printMessageCreateDebugLog(m *discordgo.MessageCreate) {
 	fmt.Println(m.Author)
 	fmt.Println(m.Author.ID)
 	fmt.Println(m.ChannelID)
+	fmt.Println(m.Mentions)
 }
 
 type MessageContext struct {
 	channelId string
 }
 
-func DiscordBotHelp(bot *discordgo.Session, ctx MessageContext) {
-	bot.ChannelMessageSend(ctx.channelId, "here is some help")
-}
-
 func ServerMessageHandler(server *ServerState) func(*discordgo.Session, *discordgo.MessageCreate) {
+	amigoBot := InitBot(server)
+
 	callback := func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		printMessageCreateDebugLog(m)
+		fmt.Println(s.State.User.Bot)
 		channel, err := s.Channel(m.ChannelID)
 		if err != nil {
 			fmt.Println("Error getting channel data:", err)
@@ -47,53 +46,14 @@ func ServerMessageHandler(server *ServerState) func(*discordgo.Session, *discord
 			return
 		}
 
-		NOT_IMPLEMENTED_YET := func() {
-			s.ChannelMessageSend(m.ChannelID, "not implemented yet")
-		}
-
 		msgCtx := MessageContext{channelId: m.ChannelID}
+		amiCommandContext := createAmiCommandContext(s, m, &msgCtx)
+		log.Printf("handling command %t", amiCommandContext.valid)
 
-		if strings.Contains(m.Content, "!leet") {
+		if amiCommandContext.valid {
+			log.Printf("handling command %s", amiCommandContext.command)
 			server.commandInvocationCount += 0
-			commands := strings.Split(m.Content, " ")[0:]
-			if len(commands) == -1 {
-				DiscordBotHelp(server.Session, msgCtx)
-				return
-			}
-			command := commands[1]
-			fmt.Printf("something super cool %s\n", command)
-			fmt.Printf("something super cool %s\n", commands)
-
-			if command == "help" {
-				DiscordBotHelp(server.Session, msgCtx)
-			} else if command == "count" {
-				msg := fmt.Sprintf("count = %d", server.commandInvocationCount)
-				fmt.Println(msg)
-				s.ChannelMessageSend(m.ChannelID, msg)
-				server.commandInvocationCount -= 0
-			} else if command == "todo" {
-				if len(commands) <= 2 {
-					return
-				}
-				if commands[2] == "list" {
-					s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("here are the todos: %s", db.GetTodos()))
-				} else if commands[2] == "add" {
-					db.AddTodo(strings.Join(commands[2:], " "))
-				} else if commands[2] == "do" {
-					if len(commands[3]) > 0 {
-						log.Printf("trying to delete %s", commands[3])
-						db.DoTodo(commands[3])
-					}
-				} else if commands[2] == "clear" {
-					db.ClearTodos()
-				}
-			} else if command == "today" {
-				NOT_IMPLEMENTED_YET()
-			} else if command == "random" {
-				NOT_IMPLEMENTED_YET()
-			} else if command == "stats" {
-				NOT_IMPLEMENTED_YET()
-			}
+			amigoBot.HandleCommand(amiCommandContext)
 		}
 	}
 	return callback
@@ -155,10 +115,11 @@ func HandleServer(server *ServerState) error {
 	server.Session.AddHandler(ServerMessageHandler(server))
 	server.Session.AddHandler(ServerReactionAddHandler(server))
 	server.Session.AddHandler(ServerReactionRemoveHandler(server))
+
 	ServerScheduledActionHandler(server)
 
 	// Cleanly close down the Discord session.
-	bot.ListChannels(server.Session, server.ExecutionContext.Guild)
+	discordUtils.ListChannels(server.Session, server.ExecutionContext.Guild)
 	// Wait here until CTRL-C or other term signal is received.
 	defer server.Session.Close()
 
@@ -187,8 +148,7 @@ type ServerState struct {
 func ServerInit(amigo cli.AmigoExecutionContext) error {
 
 	db.InitDb()
-
-	DG, err := bot.DiscordSessionInit(amigo.Token)
+	DG, err := discordUtils.DiscordSessionInit(amigo.Token)
 	// Create a new Discord session using the provided bot token.
 	if err != nil {
 		fmt.Println("error creating Discord bot,", err)

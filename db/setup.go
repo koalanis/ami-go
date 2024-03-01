@@ -17,7 +17,7 @@ func InitDb() {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     msg TEXT,
 		done INTEGER
-)`)
+	)`)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,10 +25,11 @@ func InitDb() {
 	log.Print("creating reminders table if it doesnt exist..")
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS reminders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    topic TEXT,
+    msg TEXT,
 		cadence TEXT
-)`)
+	)`)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }
