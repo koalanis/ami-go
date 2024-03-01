@@ -3,6 +3,7 @@ a personal discord assistant
 
 # directives
 > _directives are little tasks that ami can perform for you_
+
 !ami todo
 !ami scribe
 !ami leet
@@ -10,6 +11,7 @@ a personal discord assistant
 
 # habits
 > _habits are ami's built-in server behaviors
+
 ami will:
 - remind TODOs to you
 - send Confirmation Reminders to you
