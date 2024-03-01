@@ -4,88 +4,13 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func TestDb() {
-	log.Print("Hlelo")
-	log.Print(os.Getwd())
-	db, err := sql.Open("sqlite3", "ami.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	log.Print("creating todos table if it doesnt exist..")
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS todos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    msg TEXT,
-		done INTEGER
-)`)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Print("creating reminders table if it doesnt exist..")
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS reminders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    topic TEXT,
-		cadence TEXT
-)`)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = db.Exec(`INSERT OR IGNORE INTO reminders (id, topic, cadence) VALUES (1, ?, ?)`, "leetcode", "DAILY")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Query data
-	rows, err := db.Query("SELECT id, msg FROM todos")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var id int
-		var msg string
-		if err := rows.Scan(&id, &msg); err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("ID: %d, Msg: %s,", id, msg)
-	}
-	if err := rows.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	rows, err = db.Query("SELECT id, topic, cadence FROM reminders")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var id int
-		var topic, cadence string
-		if err := rows.Scan(&id, &topic, &cadence); err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("ID: %d, topic: %s, cadence: %s", id, topic, cadence)
-	}
-	if err := rows.Err(); err != nil {
-		log.Fatal(err)
-	}
-}
-
 func GetTodos() string {
-	log.Print("Hlelo")
-	log.Print(os.Getwd())
 	db, err := sql.Open("sqlite3", "ami.db")
 	if err != nil {
 		log.Fatal(err)

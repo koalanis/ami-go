@@ -186,7 +186,7 @@ type ServerState struct {
 
 func ServerInit(amigo cli.AmigoExecutionContext) error {
 
-	db.TestDb()
+	db.InitDb()
 
 	DG, err := bot.DiscordSessionInit(amigo.Token)
 	// Create a new Discord session using the provided bot token.
