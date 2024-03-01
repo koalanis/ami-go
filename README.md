@@ -3,11 +3,12 @@ a personal discord assistant
 
 # directives
 > _directives are little tasks that ami can perform for you_
-
+```
 !ami todo
 !ami scribe
 !ami leet
 !ami config
+```
 
 # habits
 > _habits are ami's built-in server behaviors
