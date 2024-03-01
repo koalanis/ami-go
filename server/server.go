@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/koalanis/ami-go/bot"
 	"github.com/koalanis/ami-go/cli"
+	"github.com/koalanis/ami-go/db"
 )
 
 func printMessageCreateDebugLog(m *discordgo.MessageCreate) {
@@ -60,6 +62,8 @@ func ServerMessageHandler(server *ServerState) func(*discordgo.Session, *discord
 			}
 			command := commands[1]
 			fmt.Printf("something super cool %s\n", command)
+			fmt.Printf("something super cool %s\n", commands)
+
 			if command == "help" {
 				DiscordBotHelp(server.Session, msgCtx)
 			} else if command == "count" {
@@ -68,7 +72,21 @@ func ServerMessageHandler(server *ServerState) func(*discordgo.Session, *discord
 				s.ChannelMessageSend(m.ChannelID, msg)
 				server.commandInvocationCount -= 0
 			} else if command == "todo" {
-				s.ChannelMessageSend(m.ChannelID, "here are the todos")
+				if len(commands) <= 2 {
+					return
+				}
+				if commands[2] == "list" {
+					s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("here are the todos: %s", db.GetTodos()))
+				} else if commands[2] == "add" {
+					db.AddTodo(strings.Join(commands[2:], " "))
+				} else if commands[2] == "do" {
+					if len(commands[3]) > 0 {
+						log.Printf("trying to delete %s", commands[3])
+						db.DoTodo(commands[3])
+					}
+				} else if commands[2] == "clear" {
+					db.ClearTodos()
+				}
 			} else if command == "today" {
 				NOT_IMPLEMENTED_YET()
 			} else if command == "random" {
@@ -88,7 +106,7 @@ func ServerReactionAddHandler(server *ServerState) func(*discordgo.Session, *dis
 			fmt.Println("Error getting channel data:", err)
 			return
 		}
-		fmt.Printf("%s", m.Emoji.Name)
+		fmt.Printf("%s on message %s\n", m.Emoji.Name, m.MessageID)
 
 	}
 	return callback
@@ -96,7 +114,7 @@ func ServerReactionAddHandler(server *ServerState) func(*discordgo.Session, *dis
 
 func ServerScheduledActionHandler(server *ServerState) {
 	sc := make(chan os.Signal, 0)
-	ticker := time.NewTicker((5 * time.Second))
+	ticker := time.NewTicker((1 * time.Minute))
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	go func() {
 		for {
@@ -138,9 +156,9 @@ func HandleServer(server *ServerState) error {
 	server.Session.AddHandler(ServerReactionAddHandler(server))
 	server.Session.AddHandler(ServerReactionRemoveHandler(server))
 	ServerScheduledActionHandler(server)
+
 	// Cleanly close down the Discord session.
 	bot.ListChannels(server.Session, server.ExecutionContext.Guild)
-
 	// Wait here until CTRL-C or other term signal is received.
 	defer server.Session.Close()
 
@@ -167,6 +185,9 @@ type ServerState struct {
 }
 
 func ServerInit(amigo cli.AmigoExecutionContext) error {
+
+	db.TestDb()
+
 	DG, err := bot.DiscordSessionInit(amigo.Token)
 	// Create a new Discord session using the provided bot token.
 	if err != nil {
