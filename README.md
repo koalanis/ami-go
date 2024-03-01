@@ -18,4 +18,3 @@ a personal discord assistant
 
 ami will:
 - remind TODOs to you
-- send Confirmation Reminders to you
